@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"> 
+<meta name="viewport" content="height=device-height,initial-scale=1, maximum-scale=1">
+<title></title>
+
+<!-- <script src="adController_android.js"></script> -->
+<style type="text/css">
+* { padding:0; margin:0;}
+body{
+margin:0px auto;
+}
+.poster {
+    vertical-align:middle;
+    width:100%;
+    max-height:100%;
+    max-width:100%;
+    height:100%;
+}
+.con_div{
+width: 100%;
+text-align:center;
+vertical-align:middle;
+color:#000;
+}
+.iframeDiv{
+position:absolute;
+filter:alpha(Opacity=80);
+z-index:100;
+width:100%;
+height:100%;
+}
+.float_div{
+position:absolute;
+float:right;
+z-index:100;
+width:75px;
+height:75px;
+right:0;
+top:0;
+background-image:url(http://ad-cache.dopool.com/ad/AdSale/html_api/bg_video_ad_timer.png);
+}
+.vip_div{
+position:absolute;
+float:right;
+z-index:100;
+width:75px;
+height:75px;
+right:0;
+top:0;
+margin-right: 75px;
+}
+.vip_con{   
+position:absolute;
+z-indent:2;
+left:0;
+top:0;
+}
+.close_div{
+position:absolute;
+float:right;
+z-index:100;
+right:0;
+top:0;
+text-align: right;
+}
+.back{
+position:absolute;
+float:left;
+z-index:100;
+left:0;
+top:0;
+}
+.timer{
+color:#fff;    
+position:absolute;
+z-indent:2;
+left:0;
+top:0;
+}
+
+</style>
+</head>
+<body onload="AdJsServerController.startShow()">
+    <div class="con_div" id="con_div">
+        <div class="back" onclick="AdJsServerController.goback()" style='display:none'>
+            <div id="" class="timer">
+                    <img id="backImg" src="http://ad-cache.dopool.com/ad/AdSale/html_api/back_from_video_ad.png">
+            </div>
+        </div>
+        <!--
+        <div id="vip_div" class="vip_div" style="display:none" >
+            <a href="javascript:AdInterface.blockAd()">
+                <img id="vip_img" src="http://ad-cache.dopool.com/ad/AdSale/html_api/blockad.png">
+            </a>
+        </div>
+        -->
+        <div id="float_div" class="float_div" style='display:none'>
+                <div id="timer" class="timer">5</div>
+        </div>
+        <div id="close" class="close_div" style='display:none'>
+                <img id="close_img" onclick="AdJsServerController.closeImg()" src="http://ad-cache.dopool.com/ad/AdSale/html_api/close.png">
+        </div>
+        <div onclick="AdJsServerController.downloadapp()" id="iframeDiv" class="iframeDiv" style="display:none;"></div>
+        <iframe id="iframe" width="100%" height="100%" style="display:none" src=""></iframe>
+        <img onclick="AdJsServerController.downloadapp()" id="ad_img" src="" class="poster" >
+        <img style="display:none" id="start_ad_img" src="" class="poster" >
+        <input id="ad_location" type="hidden" value="">
+        <input id="app_name" type="hidden" value="">
+        <input id="app_iscancel" type="hidden" value="">
+        <input id="location_type" type="hidden" value="">
+        <input id="user_imp" type="hidden" value="">
+        <input id="user_clk" type="hidden" value="">
+        <input id="third_imp" type="hidden" value="">
+        <input id="third_clk" type="hidden" value="">
+        <input id="sm_clk" type="hidden" value="">
+        <input id="orderid" type="hidden" value="">
+        <input id="order_params" type="hidden" value="">
+    </div>
+</body>
+<script>
+//测试数据
+/*
+var AdInterface = {
+getPhoneInfo:function(){
+    return '{"uuid":"FD84A665-F748-4E22-9ACE-199EDBEF1569","imsi":"","mac":"02:00:00:00:00:00","net":"WIFI","appver":"6.2.1","deviceId":"0","reslevel":3,"platform":"apple","osver":"9.2.1","manufacturer":"apple","resolution":"1242x2208","dmodel":"iPhone","app_key":"4MUAHmQFf1YR"}';
+},
+getDataCache:function(key){
+    res=localStorage.getItem(key);
+    return res;
+},
+setDataCache:function(key,value){
+    localStorage.setItem(key,value);
+
+},
+removeDataCache:function(key){
+    localStorage.removeItem(key);
+},
+dowloadApp:function(){
+
+},
+openNewTablet:function(str,url,num){
+console.log('openUrl'+url)
+},
+back:function(){
+console.log('back')
+},
+show:function(){
+console.log('show')
+},
+hide:function(){
+console.log('hide')
+},
+getHdtData:function(){
+
+},
+getApi:function(url,method,params,headers,timeout){
+    return 'eyJDT0RFIjoiU1VDQ0VTUyIsIkRBVEEiOnsiQkFOTkVSX1YyIjp7IjUyMSI6eyJQUklPUklUWSI6IjEiLCJISVRERVNDIjoiIiwiUEFDS0FHRV9OQU1FIjoiIiwiUE9TSVRJT04iOiIxIiwiQ1VTVE9NX0NMSUNLIjoiMCIsIlZJREVPVVJMIjoiIiwiTE9DQVRJT05fVFlQRSI6IjAiLCJEVVJBVElPTiI6IjEwIiwiREFZX05VTSI6IjAiLCJWSURFT1VSTF9GTFYiOiIiLCJGUkVRVUVOQ1kiOiIwIiwiSUNPTiI6Imh0dHA6XC9cL3Rlc3QuYWQuc3RhcnNjaGluYS5jb21cL1B1YmxpY1wvVXBsb2Fkc1wvNTY1NDJmN2UwZWU3Ni5wbmciLCJGVUxMU0NSRUVOX0NMSUNLIjoiMCIsIk1BUktFVCI6IiIsIkxPQ0FUSU9OIjoiaHR0cDpcL1wvdGVzdC5hZC5zdGFyc2NoaW5hLmNvbVwvQWRTYWxlXC9DbGlcL2FkRGF0YUFwaS5waHA/YWRjYXRlZ29yaWVzPTAwMSZsb2NhdGlvbj1odHRwJTNBJTJGJTJGdGkuc3RhcnNjaGluYS5jbiUyRmR1aWJhX2xvZ2luJTNGdXJsJTNEaHR0cCUyNTNBJTI1MkYlMjUyRnd3dy5kdWliYS5jb20uY24lMjUyRnNpbmdsZUxvdHRlcnklMjUyRmluZGV4JTI1MkYyNDQyJm9yZGVyaWQ9NTIxJndpZHRoPTczNiZjbGllbnRfaXA9MTA2LjIuMjEzLjQyJmFwcF9rZXk9NE1VQUhtUUZmMVlSJnV1aWQ9RjEyQjYwNDUtQTNEQy00NEQxLTlEOTQtRjNGREJBMTUwOTIzJm5ldD1XSUZJJmltc2k9Jm1hYz0wMjowMDowMDowMDowMDowMCZvc3Zlcj05LjIuMSZyZXNvbHV0aW9uPTEyNDJ4MjIwOCZwbGF0Zm9ybT1hcHBsZSZyZXNsZXZlbD0zJmRldmljZUlkPTAmbWFudWZhY3R1cmVyPWFwcGxlJmFwcHZlcj02LjIuMSZoZWlnaHQ9NDE0JmRtb2RlbD1pUGhvbmUiLCJUSElSRFNUQSI6IiIsIlZJREVPSURTIjoiMzYzLDQ3MSIsIlRISVJEQ0xJQ0siOiIiLCJUWVBFIjoiQkFOTkVSX1YyIiwiRU5EVElNRSI6IjQyOTkxMTk4IiwiUEFSQU1TIjoib3JkZXJpZD01MjEmb3JkZXJQcm9kdWN0PTQzNyIsIkNVU1RPTV9TSE9XIjoiMCIsIlhfSUNPTiI6IiIsIllfSUNPTiI6IiIsIkNMT1NFIjoiMCJ9LCJUT1VDSF9CQU5ORVIiOnsiVFlQRSI6IlRPVUNIX0JBTk5FUiIsIlBSSU9SSVRZIjoiMiIsIlZJREVPSURTIjoiMzY2LDQ2NSw0NzMsMTc0MSIsIlBPU0lUSU9OIjoiMCIsIlNIT1dJRFMiOiIiLCJQQVJBTVMiOiJvcmRlcmlkPTUyNCIsIkNVU1RPTV9TSE9XIjoiMCIsIk1BUktFVCI6IiIsIkNVU1RPTV9DTElDSyI6IjAiLCJEQVlfTlVNIjoiMCJ9LCJBRE1PQl9CQU5ORVIiOnsiVVNFUl9DTEsiOiIiLCJMT0NBVElPTiI6IiIsIk1BUktFVCI6IiIsIlBSSU9SSVRZIjoiMyIsIlBBUkFNUyI6Im9yZGVyaWQ9NjU1IiwiVklERU9JRFMiOiIzNjgsMjE1OTMiLCJQQUNLQUdFX05BTUUiOiIiLCJMT0NBVElPTl9UWVBFIjoiMCIsIklDT04iOiIiLCJIRFRfVFMiOiIiLCJEVVJBVElPTiI6IjUiLCJUSElSRF9DTEsiOiIiLCJVU0VSX0lNUCI6IiIsIlRISVJEX0lNUCI6IiJ9LCI1MTkiOnsiUFJJT1JJVFkiOiIyIiwiSElUREVTQyI6IiIsIlBBQ0tBR0VfTkFNRSI6IiIsIlBPU0lUSU9OIjoiMSIsIkNVU1RPTV9DTElDSyI6IjAiLCJWSURFT1VSTCI6IiIsIkxPQ0FUSU9OX1RZUEUiOiIwIiwiRFVSQVRJT04iOiIxMCIsIkRBWV9OVU0iOiIwIiwiVklERU9VUkxfRkxWIjoiIiwiRlJFUVVFTkNZIjoiMCIsIklDT04iOiJodHRwOlwvXC90ZXN0LmFkLnN0YXJzY2hpbmEuY29tXC9QdWJsaWNcL1VwbG9hZHNcLzU2NTQyZjRiYjY1YjEuanBlZyIsIkZVTExTQ1JFRU5fQ0xJQ0siOiIwIiwiTUFSS0VUIjoiIiwiTE9DQVRJT04iOiIiLCJUSElSRFNUQSI6IiIsIlZJREVPSURTIjoiMzY5LDQ2NCw2MTIiLCJUSElSRENMSUNLIjoiIiwiVFlQRSI6IkJBTk5FUl9WMiIsIkVORFRJTUUiOiI0Mjk5MTE5OCIsIlBBUkFNUyI6Im9yZGVyaWQ9NTE5Jm9yZGVyUHJvZHVjdD00MzUiLCJDVVNUT01fU0hPVyI6IjAiLCJYX0lDT04iOiIiLCJZX0lDT04iOiIiLCJDTE9TRSI6IjAifSwiSERUX0JBTk5FUiI6eyJMT0NBVElPTiI6IiIsIlVTRVJfQ0xLIjoiIiwiRFVSQVRJT04iOiIxMCIsIkxPQ0FUSU9OX1RZUEUiOiIwIiwiTUFSS0VUIjoiIiwiUFJJT1JJVFkiOiIxIiwiUEFSQU1TIjoib3JkZXJpZD01MjgiLCJWSURFT0lEUyI6IjQ2Myw0NzIiLCJQQUNLQUdFX05BTUUiOiIiLCJQT1NJVElPTiI6IjAiLCJJQ09OIjoiIiwiSERUX1RTIjoiIiwiU0hPV0lEUyI6IiIsIlRISVJEX0NMSyI6IiIsIlVTRVJfSU1QIjoiIiwiVEhJUkRfSU1QIjoiIn0sIjUxNyI6eyJQUklPUklUWSI6IjIiLCJISVRERVNDIjoiIiwiUEFDS0FHRV9OQU1FIjoiIiwiUE9TSVRJT04iOiIxIiwiQ1VTVE9NX0NMSUNLIjoiMCIsIlZJREVPVVJMIjoiIiwiTE9DQVRJT05fVFlQRSI6IjAiLCJEVVJBVElPTiI6IjEwIiwiREFZX05VTSI6IjAiLCJWSURFT1VSTF9GTFYiOiIiLCJGUkVRVUVOQ1kiOiIwIiwiSUNPTiI6Imh0dHA6XC9cL3Rlc3QuYWQuc3RhcnNjaGluYS5jb21cL1B1YmxpY1wvVXBsb2Fkc1wvNTY1NDJmMjg0ZmZmOC5qcGVnIiwiRlVMTFNDUkVFTl9DTElDSyI6IjAiLCJNQVJLRVQiOiIiLCJMT0NBVElPTiI6Imh0dHA6XC9cL3Rlc3QuYWQuc3RhcnNjaGluYS5jb21cL0FkU2FsZVwvQ2xpXC9hZERhdGFBcGkucGhwP2FkY2F0ZWdvcmllcz0wMDEmbG9jYXRpb249aHR0cCUzQSUyRiUyRnVtMC5jbiUyRkQ0NEltaSUyRiZvcmRlcmlkPTUxNyZ3aWR0aD03MzYmY2xpZW50X2lwPTEwNi4yLjIxMy40MiZhcHBfa2V5PTRNVUFIbVFGZjFZUiZ1dWlkPUYxMkI2MDQ1LUEzREMtNDREMS05RDk0LUYzRkRCQTE1MDkyMyZuZXQ9V0lGSSZpbXNpPSZtYWM9MDI6MDA6MDA6MDA6MDA6MDAmb3N2ZXI9OS4yLjEmcmVzb2x1dGlvbj0xMjQyeDIyMDgmcGxhdGZvcm09YXBwbGUmcmVzbGV2ZWw9MyZkZXZpY2VJZD0wJm1hbnVmYWN0dXJlcj1hcHBsZSZhcHB2ZXI9Ni4yLjEmaGVpZ2h0PTQxNCZkbW9kZWw9aVBob25lIiwiVEhJUkRTVEEiOiIiLCJWSURFT0lEUyI6IjM2MiwzNjYsMzY5LDQ2NCw2MTIiLCJUSElSRENMSUNLIjoiIiwiVFlQRSI6IkJBTk5FUl9WMiIsIkVORFRJTUUiOiI0Mjk5MTE5OCIsIlBBUkFNUyI6Im9yZGVyaWQ9NTE3Jm9yZGVyUHJvZHVjdD00MzMiLCJDVVNUT01fU0hPVyI6IjAiLCJYX0lDT04iOiIiLCJZX0lDT04iOiIiLCJDTE9TRSI6IjAifSwiNTE1Ijp7IlBSSU9SSVRZIjoiMyIsIkhJVERFU0MiOiIiLCJQQUNLQUdFX05BTUUiOiIiLCJQT1NJVElPTiI6IjEiLCJDVVNUT01fQ0xJQ0siOiIwIiwiVklERU9VUkwiOiIiLCJMT0NBVElPTl9UWVBFIjoiMCIsIkRVUkFUSU9OIjoiMTAiLCJEQVlfTlVNIjoiMCIsIlZJREVPVVJMX0ZMViI6IiIsIkZSRVFVRU5DWSI6IjAiLCJJQ09OIjoiaHR0cDpcL1wvdGVzdC5hZC5zdGFyc2NoaW5hLmNvbVwvUHVibGljXC9VcGxvYWRzXC81NjU0MmVmNThjNDA2LmpwZWciLCJGVUxMU0NSRUVOX0NMSUNLIjoiMCIsIk1BUktFVCI6IiIsIkxPQ0FUSU9OIjoiaHR0cDpcL1wvdGVzdC5hZC5zdGFyc2NoaW5hLmNvbVwvQWRTYWxlXC9DbGlcL2FkRGF0YUFwaS5waHA/YWRjYXRlZ29yaWVzPTAwMSZsb2NhdGlvbj1odHRwJTNBJTJGJTJGd3d3LmJhaWR1LmNvbSZvcmRlcmlkPTUxNSZ0aGlyZGNsaWNrPWFIUjBjRG92THpFeE5DNHhNVEl1T0RRdU1UTTBMMkZrTDBGa2RpOWhjR2t1Y0dod1AyRTlZV1JqYkdsamF5WjZlV2c5ZW5sbyZ3aWR0aD03MzYmY2xpZW50X2lwPTEwNi4yLjIxMy40MiZhcHBfa2V5PTRNVUFIbVFGZjFZUiZ1dWlkPUYxMkI2MDQ1LUEzREMtNDREMS05RDk0LUYzRkRCQTE1MDkyMyZuZXQ9V0lGSSZpbXNpPSZtYWM9MDI6MDA6MDA6MDA6MDA6MDAmb3N2ZXI9OS4yLjEmcmVzb2x1dGlvbj0xMjQyeDIyMDgmcGxhdGZvcm09YXBwbGUmcmVzbGV2ZWw9MyZkZXZpY2VJZD0wJm1hbnVmYWN0dXJlcj1hcHBsZSZhcHB2ZXI9Ni4yLjEmaGVpZ2h0PTQxNCZkbW9kZWw9aVBob25lIiwiVEhJUkRTVEEiOiIiLCJWSURFT0lEUyI6InZvZCwzNjIsMzY1LDQ2NiIsIlRISVJEQ0xJQ0siOiIiLCJUWVBFIjoiQkFOTkVSX1YyIiwiRU5EVElNRSI6IjQyOTkxMTk4IiwiUEFSQU1TIjoib3JkZXJpZD01MTUmb3JkZXJQcm9kdWN0PTQzMSZ0aGlyZHNob3c9YUhSMGNEb3ZMekV4TkM0eE1USXVPRFF1TVRNMEwyRmtMMEZrZGk5aGNHa3VjR2h3UDJFOVlXUmxlSEJ2YzNWeVpTWjZlV2c5ZW5sbyIsIkNVU1RPTV9TSE9XIjoiMCIsIlhfSUNPTiI6IiIsIllfSUNPTiI6IiIsIkNMT1NFIjoiMCJ9fSwiVEhJUkRSRUNPTU1FTkQiOnt9LCJBRENISU5BIjp7fSwiQURNT0IiOnt9LCJCQUlMSU5fTE9BRElORyI6e30sIkxPTUFSS19JTlNDUkVFTiI6e30sIkFEVE9VQ0giOnsiVklERU9JRFMiOiIzNjYsNDY1LDQ3MywxNzQxIiwiVFlQRSI6IkFEVE9VQ0giLCJQUklPUklUWSI6IjIiLCJQQVJBTVMiOiJvcmRlcmlkPTUwOSIsIkNVU1RPTV9TSE9XIjoiMCIsIkNVU1RPTV9DTElDSyI6IjAiLCJNQVJLRVQiOiIiLCJEQVlfTlVNIjoiMCJ9LCJTVEFSVExPQURJTkciOnsiUFJJT1JJVFkiOiIwIiwiTE9DQVRJT05fVFlQRSI6IjAiLCJUSElSRENMSUNLIjoiIiwiQURUWVBFIjoic3RhcnRsb2FkaW5nIiwiRlVMTFNDUkVFTl9DTElDSyI6IjEiLCJNQVJLRVQiOiIiLCJMT0NBVElPTiI6IiIsIlRISVJEU1RBIjoiIiwiVFlQRSI6IlNUQVJUTE9BRElORyIsIkRBWV9OVU0iOiIwIiwiRFVSQVRJT04iOiIzIiwiSUNPTiI6Imh0dHA6XC9cL3Rlc3QuYWQuc3RhcnNjaGluYS5jb21cL1B1YmxpY1wvVXBsb2Fkc1wvNTY1NDI3Njk1ZWNlZi5qcGVnIiwiUEFSQU1TIjoib3JkZXJpZD00OTUmb3JkZXJQcm9kdWN0PTQxMSIsIkNVU1RPTV9TSE9XIjoiMCIsIkVORFRJTUUiOiIxNDk4ODM4NDAwIiwiQ1VTVE9NX0NMSUNLIjoiMCIsIkNMT1NFIjoiMSJ9LCJDT05URU5UX0FEIjp7fSwiQURNT0JfQkFOTkVSIjp7Ik1BUktFVCI6IiIsIlBSSU9SSVRZIjoiMyIsIlZJREVPSURTIjoiMzY4LDIxNTkzIiwiQ1VTVE9NX1NIT1ciOiIiLCJQQVJBTVMiOiJvcmRlcmlkPTY1NSIsIkRVUkFUSU9OIjoiNSIsIkNVU1RPTV9DTElDSyI6IiIsIlRZUEUiOiJBRE1PQl9CQU5ORVIiLCJEQVlfTlVNIjoiMCJ9LCJMT0FESU5HX1ZJREVPIjpbeyJPUkRFUklEUyI6WzQ5OSw1MzJdLCJWSURFT0lEUyI6WyI0NzEiXX0seyJPUkRFUklEUyI6WyI1MDMiXSwiVklERU9JRFMiOlsiNjEyIiwiNDY0Il19XSwiSERUX0JBTk5FUiI6eyJNQVJLRVQiOiIiLCJQUklPUklUWSI6IjEiLCJWSURFT0lEUyI6IjQ2Myw0NzIiLCJDVVNUT01fU0hPVyI6IjAiLCJQT1NJVElPTiI6IjAiLCJEVVJBVElPTiI6IjEwIiwiUEFSQU1TIjoib3JkZXJpZD01MjgiLCJTSE9XSURTIjoiIiwiVFlQRSI6IkhEVF9CQU5ORVIiLCJDVVNUT01fQ0xJQ0siOiIwIiwiREFZX05VTSI6IjAifSwiV09SRCI6e30sIkFEQ0hJTkFfQkFOTkVSIjp7IlRZUEUiOiJBRENISU5BX0JBTk5FUiIsIlBSSU9SSVRZIjoiMiIsIk1BUktFVCI6IiIsIlZJREVPSURTIjoiMzYzLDM2NSw1ODgsOTQ3LDE3NDEiLCJEVVJBVElPTiI6IjEwIiwiUE9TSVRJT04iOiIwIiwiU0hPV0lEUyI6IiIsIlBBUkFNUyI6Im9yZGVyaWQ9NTIzIiwiQ1VTVE9NX1NIT1ciOiIwIiwiTE9DQVRJT05fVFlQRSI6IjAiLCJDVVNUT01fQ0xJQ0siOiIwIiwiREFZX05VTSI6IjAifSwiU1RBVElTVFVSTCI6Imh0dHA6XC9cL3Rlc3QuYWRhcGkuc3RhcnNjaGluYS5jb21cL2FkXC9BZHZcL2FwaS5waHAiLCJBRElNQUdFIjp7fSwiQURDSElOQV9WSURFTyI6eyJNQVJLRVQiOiIiLCJQUklPUklUWSI6IjIiLCJWSURFT0lEUyI6IjU4OCw5NDciLCJDVVNUT01fU0hPVyI6IjAiLCJQT1NJVElPTiI6IjAiLCJUWVBFIjoiQURDSElOQV9WSURFTyIsIlBBUkFNUyI6Im9yZGVyaWQ9NTEzIiwiU0hPV0lEUyI6IiIsIkxPQ0FUSU9OX1RZUEUiOiIwIiwiQ1VTVE9NX0NMSUNLIjoiMCIsIkRBWV9OVU0iOiIwIn0sIkJJTkRBUFAiOnt9LCJMT0FESU5HX0ZSRVFVRU5DWSI6IjAiLCJNQ0FTX0xPQURJTkciOnt9LCJMT0FESU5HIjp7IjQ5NiI6eyJQUklPUklUWSI6IjMiLCJISVRERVNDIjoiIiwiUEFDS0FHRV9OQU1FIjoiIiwiUE9TSVRJT04iOiIxIiwiQ1VTVE9NX0NMSUNLIjoiMCIsIlZJREVPVVJMIjoiIiwiTE9DQVRJT05fVFlQRSI6IjAiLCJEVVJBVElPTiI6IjUiLCJEQVlfTlVNIjoiMCIsIlZJREVPVVJMX0ZMViI6IiIsIkZSRVFVRU5DWSI6IjAiLCJJQ09OIjoiaHR0cDpcL1wvdGVzdC5hZC5zdGFyc2NoaW5hLmNvbVwvUHVibGljXC9VcGxvYWRzXC81NjU0MzU2NjA5Zjg2LmpwZWciLCJGVUxMU0NSRUVOX0NMSUNLIjoiMCIsIk1BUktFVCI6IiIsIkxPQ0FUSU9OIjoiaHR0cDpcL1wvdGVzdC5hZC5zdGFyc2NoaW5hLmNvbVwvQWRTYWxlXC9DbGlcL2FkRGF0YUFwaS5waHA/YWRjYXRlZ29yaWVzPTAwMSZsb2NhdGlvbj1odHRwJTNBJTJGJTJGY2xrLmdlbnRhZ3MubmV0JTJGbmNrJTJGaXYtMTM0NDQlMkZzdC0xMTU3JTJGY3ItMiUyRm9pLTM0MTkxMSUyRm9yLTQxOTAlMkZhZHYtNTExJTJGcGNvbi0wJTJGaW1laSUzRF9fSU1FSV9fJTI2bWFjJTNEX19NQUNfXyUyNmFuZHJvaWQlM0RfX0FORFJPSURJRF9fJTI2aWRmYSUzRF9fSURGQV9fJTI2b3BpZCUzRF9fT1BFTlVESURfXyUyNm9zJTNEX19PU19fJTJGaHR0cCUzQSUyRiUyRndhcC5pbmNha2UubmV0JTJGSUNha2UlMkZOZXdBY3Rpdml0eU1SLmFzcHglM0ZpZCUzRDI0JTI2dmVyJTNEZG9wb29sMyUyNmluY2FrZSUzRHF0Jm9yZGVyaWQ9NDk2JndpZHRoPTczNiZjbGllbnRfaXA9MTA2LjIuMjEzLjQyJmFwcF9rZXk9NE1VQUhtUUZmMVlSJnV1aWQ9RjEyQjYwNDUtQTNEQy00NEQxLTlEOTQtRjNGREJBMTUwOTIzJm5ldD1XSUZJJmltc2k9Jm1hYz0wMjowMDowMDowMDowMDowMCZvc3Zlcj05LjIuMSZyZXNvbHV0aW9uPTEyNDJ4MjIwOCZwbGF0Zm9ybT1hcHBsZSZyZXNsZXZlbD0zJmRldmljZUlkPTAmbWFudWZhY3R1cmVyPWFwcGxlJmFwcHZlcj02LjIuMSZoZWlnaHQ9NDE0JmRtb2RlbD1pUGhvbmUiLCJUSElSRFNUQSI6IiIsIlZJREVPSURTIjoidm9kLDM2MiwzNjUsNDY2IiwiVEhJUkRDTElDSyI6IiIsIlRZUEUiOiJMT0FESU5HIiwiRU5EVElNRSI6IjQyOTkxMTk4IiwiUEFSQU1TIjoib3JkZXJpZD00OTYmb3JkZXJQcm9kdWN0PTQxMiIsIkNVU1RPTV9TSE9XIjoiMCIsIlhfSUNPTiI6Imh0dHA6XC9cL3Rlc3QuYWQuc3RhcnNjaGluYS5jb21cL1B1YmxpY1wvVXBsb2Fkc1wvNTY1NDM1NjYwOWY4Ni5qcGVnIiwiWV9JQ09OIjoiIiwiQ0xPU0UiOiIwIn0sIjQ5NyI6eyJQUklPUklUWSI6IjIiLCJISVRERVNDIjoiIiwiUEFDS0FHRV9OQU1FIjoiIiwiUE9TSVRJT04iOiIxIiwiQ1VTVE9NX0NMSUNLIjoiMCIsIlZJREVPVVJMIjoiIiwiTE9DQVRJT05fVFlQRSI6IjAiLCJEVVJBVElPTiI6IjUiLCJEQVlfTlVNIjoiMCIsIlZJREVPVVJMX0ZMViI6IiIsIkZSRVFVRU5DWSI6IjAiLCJJQ09OIjoiaHR0cDpcL1wvdGVzdC5hZC5zdGFyc2NoaW5hLmNvbVwvUHVibGljXC9VcGxvYWRzXC81NjU0MzVjMTMwYzYwLmpwZWciLCJGVUxMU0NSRUVOX0NMSUNLIjoiMCIsIk1BUktFVCI6IiIsIkxPQ0FUSU9OIjoiaHR0cDpcL1wvdGVzdC5hZC5zdGFyc2NoaW5hLmNvbVwvQWRTYWxlXC9DbGlcL2FkRGF0YUFwaS5waHA/YWRjYXRlZ29yaWVzPTAwMSZsb2NhdGlvbj1odHRwJTNBJTJGJTJGdW0wLmNuJTJGRDQ0SW1pJTJGJm9yZGVyaWQ9NDk3JndpZHRoPTczNiZjbGllbnRfaXA9MTA2LjIuMjEzLjQyJmFwcF9rZXk9NE1VQUhtUUZmMVlSJnV1aWQ9RjEyQjYwNDUtQTNEQy00NEQxLTlEOTQtRjNGREJBMTUwOTIzJm5ldD1XSUZJJmltc2k9Jm1hYz0wMjowMDowMDowMDowMDowMCZvc3Zlcj05LjIuMSZyZXNvbHV0aW9uPTEyNDJ4MjIwOCZwbGF0Zm9ybT1hcHBsZSZyZXNsZXZlbD0zJmRldmljZUlkPTAmbWFudWZhY3R1cmVyPWFwcGxlJmFwcHZlcj02LjIuMSZoZWlnaHQ9NDE0JmRtb2RlbD1pUGhvbmUiLCJUSElSRFNUQSI6IiIsIlZJREVPSURTIjoiMzY2LDM2OSw0NjQsNjEyIiwiVEhJUkRDTElDSyI6IiIsIlRZUEUiOiJMT0FESU5HIiwiRU5EVElNRSI6IjQyOTkxMTk4IiwiUEFSQU1TIjoib3JkZXJpZD00OTcmb3JkZXJQcm9kdWN0PTQxMyIsIkNVU1RPTV9TSE9XIjoiMCIsIlhfSUNPTiI6Imh0dHA6XC9cL3Rlc3QuYWQuc3RhcnNjaGluYS5jb21cL1B1YmxpY1wvVXBsb2Fkc1wvNTY1NDM1YzEzMGM2MC5qcGVnIiwiWV9JQ09OIjoiIiwiQ0xPU0UiOiIwIn0sIjUzMiI6eyJQUklPUklUWSI6IjEiLCJISVRERVNDIjoi5LiN6Lez5YWo54K5IiwiUEFDS0FHRV9OQU1FIjoiIiwiUE9TSVRJT04iOiIxIiwiQ1VTVE9NX0NMSUNLIjoiMCIsIlZJREVPVVJMIjoiaHR0cDpcL1wvdm9kLnN0YXJzY2hpbmEuY29tXC9hZHZvZFwvNTY1MmQ4ZDJjM2UyZS5tcDQiLCJMT0NBVElPTl9UWVBFIjoiMCIsIkRVUkFUSU9OIjoiMTUiLCJEQVlfTlVNIjoiMCIsIlZJREVPVVJMX0ZMViI6IiIsIkZSRVFVRU5DWSI6IjAiLCJJQ09OIjoiIiwiRlVMTFNDUkVFTl9DTElDSyI6IjEiLCJNQVJLRVQiOiIiLCJMT0NBVElPTiI6Imh0dHA6XC9cL3Rlc3QuYWQuc3RhcnNjaGluYS5jb21cL0FkU2FsZVwvQ2xpXC9hZERhdGFBcGkucGhwP2FkY2F0ZWdvcmllcz0wMDEmbG9jYXRpb249aHR0cCUzQSUyRiUyRnRpLnN0YXJzY2hpbmEuY24lMkZkdWliYV9sb2dpbiUzRnVybCUzRGh0dHAlMjUzQSUyNTJGJTI1MkZ3d3cuZHVpYmEuY29tLmNuJTI1MkZzaW5nbGVMb3R0ZXJ5JTI1MkZpbmRleCUyNTJGMjQ0MiZvcmRlcmlkPTUzMiZ3aWR0aD03MzYmY2xpZW50X2lwPTEwNi4yLjIxMy40MiZhcHBfa2V5PTRNVUFIbVFGZjFZUiZ1dWlkPUYxMkI2MDQ1LUEzREMtNDREMS05RDk0LUYzRkRCQTE1MDkyMyZuZXQ9V0lGSSZpbXNpPSZtYWM9MDI6MDA6MDA6MDA6MDA6MDAmb3N2ZXI9OS4yLjEmcmVzb2x1dGlvbj0xMjQyeDIyMDgmcGxhdGZvcm09YXBwbGUmcmVzbGV2ZWw9MyZkZXZpY2VJZD0wJm1hbnVmYWN0dXJlcj1hcHBsZSZhcHB2ZXI9Ni4yLjEmaGVpZ2h0PTQxNCZkbW9kZWw9aVBob25lIiwiVEhJUkRTVEEiOiIiLCJWSURFT0lEUyI6IjQ3MSIsIlRISVJEQ0xJQ0siOiIiLCJUWVBFIjoiVklERU8iLCJFTkRUSU1FIjoiNDI5OTExOTgiLCJQQVJBTVMiOiJvcmRlcmlkPTUzMiZvcmRlclByb2R1Y3Q9NDQ4IiwiQ1VTVE9NX1NIT1ciOiIwIiwiWF9JQ09OIjoiIiwiWV9JQ09OIjoiIiwiQ0xPU0UiOiIwIn0sIjUwMyI6eyJQUklPUklUWSI6IjIiLCJISVRERVNDIjoi5Y+v6Lez5Yy65Z+fIiwiUEFDS0FHRV9OQU1FIjoiIiwiUE9TSVRJT04iOiIxIiwiQ1VTVE9NX0NMSUNLIjoiMCIsIlZJREVPVVJMIjoiaHR0cDpcL1wvdm9kLnN0YXJzY2hpbmEuY29tXC9hZHZvZFwvNTY1MmRhN2U0MjZhYi5tcDQiLCJMT0NBVElPTl9UWVBFIjoiMCIsIkRVUkFUSU9OIjoiMTUiLCJEQVlfTlVNIjoiMCIsIlZJREVPVVJMX0ZMViI6IiIsIkZSRVFVRU5DWSI6IjAiLCJJQ09OIjoiIiwiRlVMTFNDUkVFTl9DTElDSyI6IjAiLCJNQVJLRVQiOiIiLCJMT0NBVElPTiI6Imh0dHA6XC9cL3Rlc3QuYWQuc3RhcnNjaGluYS5jb21cL0FkU2FsZVwvQ2xpXC9hZERhdGFBcGkucGhwP2FkY2F0ZWdvcmllcz0wMDEmbG9jYXRpb249aHR0cCUzQSUyRiUyRml0dW5lcy5hcHBsZS5jb20lMkZtbyUyRmFwcCUyRmRhLXlpLW1hLXl1ZS1qaW5nLXpob3UtcWklMkZpZDUyNzgwOTYwMCUzRm10JTNEOCZvcmRlcmlkPTUwMyZ3aWR0aD03MzYmY2xpZW50X2lwPTEwNi4yLjIxMy40MiZhcHBfa2V5PTRNVUFIbVFGZjFZUiZ1dWlkPUYxMkI2MDQ1LUEzREMtNDREMS05RDk0LUYzRkRCQTE1MDkyMyZuZXQ9V0lGSSZpbXNpPSZtYWM9MDI6MDA6MDA6MDA6MDA6MDAmb3N2ZXI9OS4yLjEmcmVzb2x1dGlvbj0xMjQyeDIyMDgmcGxhdGZvcm09YXBwbGUmcmVzbGV2ZWw9MyZkZXZpY2VJZD0wJm1hbnVmYWN0dXJlcj1hcHBsZSZhcHB2ZXI9Ni4yLjEmaGVpZ2h0PTQxNCZkbW9kZWw9aVBob25lIiwiVEhJUkRTVEEiOiIiLCJWSURFT0lEUyI6IjQ2NCw2MTIiLCJUSElSRENMSUNLIjoiIiwiVFlQRSI6IlZJREVPIiwiRU5EVElNRSI6IjQyOTkxMTk4IiwiUEFSQU1TIjoib3JkZXJpZD01MDMmb3JkZXJQcm9kdWN0PTQxOSIsIkNVU1RPTV9TSE9XIjoiMCIsIlhfSUNPTiI6IiIsIllfSUNPTiI6IiIsIkNMT1NFIjoiMSJ9LCI0OTgiOnsiUFJJT1JJVFkiOiIyIiwiSElUREVTQyI6IiIsIlBBQ0tBR0VfTkFNRSI6IiIsIlBPU0lUSU9OIjoiMSIsIkNVU1RPTV9DTElDSyI6IjAiLCJWSURFT1VSTCI6IiIsIkxPQ0FUSU9OX1RZUEUiOiIwIiwiRFVSQVRJT04iOiI1IiwiREFZX05VTSI6IjAiLCJWSURFT1VSTF9GTFYiOiIiLCJGUkVRVUVOQ1kiOiIwIiwiSUNPTiI6Imh0dHA6XC9cL3Rlc3QuYWQuc3RhcnNjaGluYS5jb21cL1B1YmxpY1wvVXBsb2Fkc1wvNTY1NDM2MDMzYWI5Ny5qcGVnIiwiRlVMTFNDUkVFTl9DTElDSyI6IjAiLCJNQVJLRVQiOiIiLCJMT0NBVElPTiI6IiIsIlRISVJEU1RBIjoiIiwiVklERU9JRFMiOiIzNjksNDY0LDYxMiIsIlRISVJEQ0xJQ0siOiIiLCJUWVBFIjoiTE9BRElORyIsIkVORFRJTUUiOiI0Mjk5MTE5OCIsIlBBUkFNUyI6Im9yZGVyaWQ9NDk4Jm9yZGVyUHJvZHVjdD00MTQiLCJDVVNUT01fU0hPVyI6IjAiLCJYX0lDT04iOiJodHRwOlwvXC90ZXN0LmFkLnN0YXJzY2hpbmEuY29tXC9QdWJsaWNcL1VwbG9hZHNcLzU2NTQzNjAzM2FiOTcuanBlZyIsIllfSUNPTiI6IiIsIkNMT1NFIjoiMCJ9LCI0OTkiOnsiUFJJT1JJVFkiOiIxIiwiSElUREVTQyI6IiIsIlBBQ0tBR0VfTkFNRSI6IiIsIlBPU0lUSU9OIjoiMSIsIkNVU1RPTV9DTElDSyI6IjAiLCJWSURFT1VSTCI6IiIsIkxPQ0FUSU9OX1RZUEUiOiIwIiwiRFVSQVRJT04iOiI1IiwiREFZX05VTSI6IjAiLCJWSURFT1VSTF9GTFYiOiIiLCJGUkVRVUVOQ1kiOiIwIiwiSUNPTiI6Imh0dHA6XC9cL3Rlc3QuYWQuc3RhcnNjaGluYS5jb21cL1B1YmxpY1wvVXBsb2Fkc1wvNTY1NDM2MWE2NTYxYy5qcGVnIiwiRlVMTFNDUkVFTl9DTElDSyI6IjAiLCJNQVJLRVQiOiIiLCJMT0NBVElPTiI6Imh0dHA6XC9cL3Rlc3QuYWQuc3RhcnNjaGluYS5jb21cL0FkU2FsZVwvQ2xpXC9hZERhdGFBcGkucGhwP2FkY2F0ZWdvcmllcz0wMDEmbG9jYXRpb249aHR0cCUzQSUyRiUyRnRpLnN0YXJzY2hpbmEuY24lMkZkdWliYV9sb2dpbiUzRnVybCUzRGh0dHAlMjUzQSUyNTJGJTI1MkZ3d3cuZHVpYmEuY29tLmNuJTI1MkZzaW5nbGVMb3R0ZXJ5JTI1MkZpbmRleCUyNTJGMjQ0MiZvcmRlcmlkPTQ5OSZ3aWR0aD03MzYmY2xpZW50X2lwPTEwNi4yLjIxMy40MiZhcHBfa2V5PTRNVUFIbVFGZjFZUiZ1dWlkPUYxMkI2MDQ1LUEzREMtNDREMS05RDk0LUYzRkRCQTE1MDkyMyZuZXQ9V0lGSSZpbXNpPSZtYWM9MDI6MDA6MDA6MDA6MDA6MDAmb3N2ZXI9OS4yLjEmcmVzb2x1dGlvbj0xMjQyeDIyMDgmcGxhdGZvcm09YXBwbGUmcmVzbGV2ZWw9MyZkZXZpY2VJZD0wJm1hbnVmYWN0dXJlcj1hcHBsZSZhcHB2ZXI9Ni4yLjEmaGVpZ2h0PTQxNCZkbW9kZWw9aVBob25lIiwiVEhJUkRTVEEiOiIiLCJWSURFT0lEUyI6IjQ3MSIsIlRISVJEQ0xJQ0siOiIiLCJUWVBFIjoiTE9BRElORyIsIkVORFRJTUUiOiI0Mjk5MTE5OCIsIlBBUkFNUyI6Im9yZGVyaWQ9NDk5Jm9yZGVyUHJvZHVjdD00MTUiLCJDVVNUT01fU0hPVyI6IjAiLCJYX0lDT04iOiJodHRwOlwvXC90ZXN0LmFkLnN0YXJzY2hpbmEuY29tXC9QdWJsaWNcL1VwbG9hZHNcLzU2NTQzNjFhNjU2MWMuanBlZyIsIllfSUNPTiI6IiIsIkNMT1NFIjoiMCJ9LCI1MDEiOnsiUFJJT1JJVFkiOiIzIiwiSElUREVTQyI6IuWPr+i3s+WMuueCuSIsIlBBQ0tBR0VfTkFNRSI6IiIsIlBPU0lUSU9OIjoiMSIsIkNVU1RPTV9DTElDSyI6IjAiLCJWSURFT1VSTCI6Imh0dHA6XC9cL3ZvZC5zdGFyc2NoaW5hLmNvbVwvYWR2b2RcLzU2NTJkYWM0OWQ0ZGUubXA0IiwiTE9DQVRJT05fVFlQRSI6IjAiLCJEVVJBVElPTiI6IjE1IiwiREFZX05VTSI6IjAiLCJWSURFT1VSTF9GTFYiOiIiLCJGUkVRVUVOQ1kiOiIwIiwiSUNPTiI6IiIsIkZVTExTQ1JFRU5fQ0xJQ0siOiIxIiwiTUFSS0VUIjoiIiwiTE9DQVRJT04iOiJodHRwOlwvXC90ZXN0LmFkLnN0YXJzY2hpbmEuY29tXC9BZFNhbGVcL0NsaVwvYWREYXRhQXBpLnBocD9hZGNhdGVnb3JpZXM9MDAxJmxvY2F0aW9uPWh0dHAlM0ElMkYlMkZ3d3cubGV0di5jb20lMkYmb3JkZXJpZD01MDEmd2lkdGg9NzM2JmNsaWVudF9pcD0xMDYuMi4yMTMuNDImYXBwX2tleT00TVVBSG1RRmYxWVImdXVpZD1GMTJCNjA0NS1BM0RDLTQ0RDEtOUQ5NC1GM0ZEQkExNTA5MjMmbmV0PVdJRkkmaW1zaT0mbWFjPTAyOjAwOjAwOjAwOjAwOjAwJm9zdmVyPTkuMi4xJnJlc29sdXRpb249MTI0MngyMjA4JnBsYXRmb3JtPWFwcGxlJnJlc2xldmVsPTMmZGV2aWNlSWQ9MCZtYW51ZmFjdHVyZXI9YXBwbGUmYXBwdmVyPTYuMi4xJmhlaWdodD00MTQmZG1vZGVsPWlQaG9uZSIsIlRISVJEU1RBIjoiIiwiVklERU9JRFMiOiJ2b2QsMzYyLDQ2NiIsIlRISVJEQ0xJQ0siOiIiLCJUWVBFIjoiVklERU8iLCJFTkRUSU1FIjoiNDI5OTExOTgiLCJQQVJBTVMiOiJvcmRlcmlkPTUwMSZvcmRlclByb2R1Y3Q9NDE3IiwiQ1VTVE9NX1NIT1ciOiIwIiwiWF9JQ09OIjoiIiwiWV9JQ09OIjoiIiwiQ0xPU0UiOiIxIn0sIjUwNSI6eyJQUklPUklUWSI6IjIiLCJISVRERVNDIjoi5LiN6Lez5YWo5bGPIiwiUEFDS0FHRV9OQU1FIjoiIiwiUE9TSVRJT04iOiIxIiwiQ1VTVE9NX0NMSUNLIjoiMCIsIlZJREVPVVJMIjoiaHR0cDpcL1wvdm9kLnN0YXJzY2hpbmEuY29tXC9hZHZvZFwvNTY1MmRhMWUxNGMxNC5tcDQiLCJMT0NBVElPTl9UWVBFIjoiMCIsIkRVUkFUSU9OIjoiMTUiLCJEQVlfTlVNIjoiMCIsIlZJREVPVVJMX0ZMViI6IiIsIkZSRVFVRU5DWSI6IjAiLCJJQ09OIjoiIiwiRlVMTFNDUkVFTl9DTElDSyI6IjEiLCJNQVJLRVQiOiIiLCJMT0NBVElPTiI6IiIsIlRISVJEU1RBIjoiIiwiVklERU9JRFMiOiI0NjQsNjEyIiwiVEhJUkRDTElDSyI6IiIsIlRZUEUiOiJWSURFTyIsIkVORFRJTUUiOiI0Mjk5MTE5OCIsIlBBUkFNUyI6Im9yZGVyaWQ9NTA1Jm9yZGVyUHJvZHVjdD00MjEiLCJDVVNUT01fU0hPVyI6IjAiLCJYX0lDT04iOiIiLCJZX0lDT04iOiIiLCJDTE9TRSI6IjAifX19fQ==';
+
+},
+noAds:function(){
+alert('noads')
+},
+sendAdData:function(dataApi,eventName,adParams){
+console.log(dataApi+'--'+eventName+'--'+adParams);
+},
+getCurrentPlay:function(){
+   return '{"screen":"598.0X360.0","params":{"videoId":"362","videoType":"1"},"name":"ActivePlayerViewController"}';
+},
+showAds:function(show){
+  alert(show)
+},
+getIflyTek:function(){
+  return 'undefined'; 
+}
+}
+*/
+
+//var api_url="http://test.adapi.starschina.com/Adv/api.php";
+var api_url="http://ad.dopool.com/ad/Adv/api.php";
+var dataApi="http://ad-data.starschina.com";
+var minAppver='6.3';
+var appver;
+var myDate = new Date();
+var year=myDate.getFullYear();
+var month=myDate.getMonth();
+var day=myDate.getDate();
+var adDate=year+'-'+month+'-'+day;
+var adInfo;
+var thirdTrack={};
+var show_time;
+var madhouseAid='DB728EA8C2DD7135';
+var $ = function (selector) {
+    var obj;
+    var isclass=false;
+    var str=selector.substr(1);
+    if(selector.indexOf(".")>=0){
+        isclass=true;
+        obj=document.getElementsByClassName(str);
+    }else{
+        obj=document.getElementById(str);
+    }
+    //console.log(obj)
+    var jquery={
+        "val":function(){
+            if(arguments[0]!=undefined){
+                obj.value=arguments[0];
+            }
+            return obj.value;
+        },
+        "attr":function(){
+            if(arguments.length>1){
+                obj.setAttribute(arguments[0],arguments[1])
+            }
+            return obj.getAttribute(arguments[0]);
+        },
+        "css":function(){
+            if(isclass){
+                for (var i = 0; i < obj.length; i++) {
+                    if(arguments.length==2){
+                        obj[i].style[arguments[0]]=arguments[1]
+                    }
+                };
+                return obj[0].style[arguments[0]];
+            }else{
+                if(arguments.length==2){
+                    obj.style[arguments[0]]=arguments[1]
+                }
+                return obj.style[arguments[0]];
+            }
+        },
+        "html":function(){
+            if(arguments[0]!=undefined){
+                obj.innerHTML=arguments[0];
+            }
+            return obj.innerHTML;
+
+        }
+    }
+    return jquery;   
+}
+
+//后台功能,用于前台背景控制
+var AdJsServerController = {
+    //adpage: ADPag对象
+    //session: 该页面的唯一标示
+    mainFunction : function(){
+        var adpage=JSON.parse(AdInterface.getCurrentPlay());
+        var info=AdInterface.getPhoneInfo();
+        var clientParams=eval("("+info+")");
+        appver=clientParams['appver'];
+        this.common.setItem("phoneInfo",info);
+
+        var name=adpage['name'];
+        var params=name!='SearchViewController'?adpage['params']:{}
+        var ad_screen=adpage['screen'].split('X');
+        clientParams['width']=ad_screen[0];
+        clientParams['height']=ad_screen[1];
+
+        var allads=AdInterface.getDataCache("allads");
+        if(typeof(allads)=="string" && allads!="undefined"){
+            var allads=JSON.parse(allads);
+            AdJsServerController.getadData(allads);
+            AdInterface.setDataCache("allads","undefined");
+        }
+        var loading_ad=this.getLoading(clientParams,name,params);
+        console.log(loading_ad)
+        if(loading_ad!=false){
+            loading_ad['dataApi']=dataApi;//广告报数据地址
+            loading_ad['params']['videoid']=adpage['params']['videoId'];
+
+            if(loading_ad['type']=='fullscreen'){
+                adInfo=loading_ad;
+                this.init()
+            }else{
+                AdInterface.showAds(JSON.stringify(loading_ad));
+            }
+        }else{
+            AdInterface.noAds();
+        }
+        /*if(type=='contentad'){
+            this.getContentAd(session,clientParams);
+        }*/
+    },
+    setClientPramUrl:function(clientParams){
+        var url=new Array();
+        for (var key in clientParams) {
+            url.push(key+"="+encodeURIComponent(clientParams[key]));
+        }
+        return url.join("&");
+    },
+    getadData:function(str){
+        var time=new Date();
+        var timeExpires=time.getTime().toString();
+        //loading 广告
+        loadData={'loading':[]}; 
+        if(Object.prototype.toString.call(str['DATA']['LOADING'])=='[object Object]'){
+            for (var key in str['DATA']['LOADING']) {
+                str['DATA']['LOADING'][key]['ORDERID']=key;
+                str['DATA']['LOADING'][key]['PARAMS']=this.paramsToJson(str['DATA']['LOADING'][key]['PARAMS']);
+                loadData['loading'].push(str['DATA']['LOADING'][key]);
+            }
+        }
+        if(str['DATA']['MCAS_LOADING']!=undefined && str['DATA']['MCAS_LOADING']['ORDERID']!=undefined){
+            loadData['loading'].push(str['DATA']['MCAS_LOADING'])
+        } 
+        if(str['DATA']['CHANGCEVIDEO']!=undefined && str['DATA']['CHANGCEVIDEO']['ORDERID']!=undefined){
+            loadData['loading'].push(str['DATA']['CHANGCEVIDEO'])
+        }
+        if(str['DATA']['MADHOUSE_IMG']!=undefined && str['DATA']['MADHOUSE_IMG']['ORDERID']!=undefined){
+            loadData['loading'].push(str['DATA']['MADHOUSE_IMG'])
+        }
+        loadData['adchina']=str['DATA']['ADCHINA'];
+        loadData['adchina_video']=str['DATA']['ADCHINA_VIDEO'];
+        loadData['adtouch']=str['DATA']['ADTOUCH'];
+        loadData['admob']=str['DATA']['ADMOB'];
+        console.log(JSON.stringify(str['DATA']['CHANGCEVIDEO']))
+        loadData['bailin_loading']=str['DATA']['BAILIN_LOADING'];
+        this.common.setItem('loading',JSON.stringify(loadData));
+        this.common.setItem('loading_expires',timeExpires);
+        this.common.setItem('loading_index',"0");
+
+
+        //开机图广告
+        if(Object.prototype.toString.call(str['DATA']['STARTLOADING'])=='[object Object]'){
+            if(str['DATA']['STARTLOADING']['ICON']!=undefined){
+                var resData=str['DATA']['STARTLOADING'];
+                resData['STATISTURL']=str['DATA']['STATISTURL']
+                this.common.setItem('startloading',JSON.stringify(resData));
+            }
+        }
+        
+        var resData=str['DATA'];
+    
+        var bannerData=new Array();
+        var dopool_banner={};
+        if(!this.isEmpty(resData['BANNER_V2']) && Object.prototype.toString.call(resData['BANNER_V2'])=='[object Object]'){
+            for (var key in resData['BANNER_V2']) {
+                resData['BANNER_V2'][key]['ORDERID']=key;
+                resData['BANNER_V2'][key]['PARAMS']=this.paramsToJson(resData['BANNER_V2'][key]['PARAMS']);
+                bannerData.push(resData['BANNER_V2'][key]);
+            };
+        }
+        dopool_banner['type']='banner';
+        dopool_banner['data']=bannerData;
+        this.common.setItem('banner',JSON.stringify(dopool_banner));
+        this.common.setItem('banner_expires',timeExpires);
+        this.common.setItem('banner_index',"0");
+    },
+    paramsToJson:function(params){
+        var data = params.split("&");
+        var res = {};
+        for(var i=0, iLoop = data.length; i<iLoop; i++)
+        {
+            var tmp = data[i].split("=");
+            res[tmp[0]] = tmp[1];
+        }
+        return res;
+    },
+    checkDayNum:function(data,index,adDate){
+        var dayNum=this.common.getItem("dayNum");
+        var res=true;
+        if(typeof(dayNum)=="string" && dayNum!=="undefined"){
+            var dayNumObj=JSON.parse(dayNum);
+            if(typeof(dayNumObj[adDate])!=="undefined"){
+                var orderDayNum=dayNumObj[adDate][data[index]['ORDERID']];
+                if(orderDayNum!=="undefined" && data[index]['DAY_NUM']>0 && orderDayNum>=data[index]['DAY_NUM']){
+                    res=true;
+                }else{
+                    res=false;
+                }
+            }else{
+                var dayNumStr='{"'+adDate+'":{}}';
+                this.common.setItem("dayNum",dayNumStr);
+                res=false;
+            }
+        }else{
+            var dayNumStr='{"'+adDate+'":{}}';
+            this.common.setItem("dayNum",dayNumStr);
+            res=false;
+        }
+        return res;
+    },
+    getMadhouseImg:function(){
+        var info = this.common.getItem("phoneInfo");
+        var adpage=JSON.parse(AdInterface.getCurrentPlay());
+        var ad_screen=adpage['screen'].split('X');
+        var width=ad_screen[0];
+        var height=ad_screen[1];
+
+
+        var clientParams = eval("(" + info + ")");
+        var time = new Date();
+        var now = parseInt(time.getTime()/1000);
+        var bid = madhouseAid+now+"0001";
+        var adspaceid=madhouseAid;
+        var pid=310;
+        var apitype=2;
+        var adtype=2;
+        var pkgname="dopool.player";
+        var appname=encodeURIComponent("CIBN手机电视");
+        var conn;
+        var net=clientParams['net'].toLowerCase();
+        switch(net){
+            case 'wifi': conn=1;break;
+            case '2g' : conn=2;break;
+            case '3g' : conn=3;break;
+            case '4g' : conn=4;break;
+            default : conn=1;
+        }
+        var carrier="0";
+        var idfa=clientParams['idfa'];
+        var os=1;
+        var osv=clientParams['osver'];
+
+        //var url="http://ad.madserving.com/adcall/bidrequest?bid="+bid+"&adspaceid="+adspaceid+"&adtype="+adtype+"&pkgname="+pkgname+"&appname="+appname+"&conn="+conn+"&carrier="+carrier+"&imei="+imei+"&os="+os+"&osv="+osv+"&width="+width+"&height="+height+"&pid="+pid+"&apitype="+apitype+"&pcat=10&media=1";
+        var url="http://ad.mobiletv.madserving.com/client/bidrequest?bid="+bid+"&adspaceid="+adspaceid+"&adtype="+adtype+"&pkgname="+pkgname+"&appname="+appname+"&conn="+conn+"&carrier="+carrier+"&idfa="+idfa+"&os="+os+"&osv="+osv+"&width="+width+"&height="+height+"&pid="+pid+"&apitype="+apitype+"&pcat=10&media=1";
+        console.log(url); 
+        res = AdInterface.getApi(url,'get','','',5);
+        return res;
+    },
+    getLoading:function(clientParams,name,params){
+        var ad=false;
+        var data=this.common.getItem("loading");
+        var loading_expires=this.common.getItem("loading_expires");
+        var now=new Date().getTime();
+        var dif=loading_expires!==undefined?now-loading_expires:0;
+        var urlParams=this.setClientPramUrl(clientParams);
+        if(data===undefined || dif>1000*60*30){
+            var url=api_url+"?a=getallads&"+urlParams;
+            var res=AdInterface.getApi(url,'get','','',5);
+            if(typeof(res)=="string" && res.indexOf("CODE")==-1){
+                var str=eval("("+Base64.decode(res)+")");
+                if(str!=undefined && str['CODE']==='SUCCESS'){
+                    AdJsServerController.getadData(str);
+                    data=this.common.getItem("loading");
+                }else{
+                    var timeExpires=time.getTime().toString();
+                    this.common.setItem('loading_expires',timeExpires);
+                    this.common.removeItem('loading');
+                }
+            }
+            
+            
+        }
+        if(data!==undefined  && data!==null){
+            if(typeof(data)=='string'){
+                data=JSON.parse(data);
+            }
+            var index=parseInt(this.common.getItem("loading_index"));
+            //var video_id=params.channel;
+            var videoType=params.videoType;
+            var video_id=(videoType=='0' || videoType=='11')?'vod':params.videoId;
+            var orderid=0;
+            //var show_id=clientParams['show_id'];
+            if(data['loading'].length>0){
+                var loading=data['loading'];
+                var length=data['loading'].length;
+                var tmp_index=index;
+                if(this.common.getItem("loading_index")>=length || this.common.getItem("loading_index")==undefined){
+                    index=0;
+                }else{
+                    index=parseInt(this.common.getItem("loading_index"));
+                }
+                for(var i =index; i <length; i++){
+                    var videoids=','+loading[i]['VIDEOIDS']+',';
+                    var excludevideoids=loading[i]['EXCLUDE']!=undefined?','+loading[i]['EXCLUDE']+',':"";
+                    if(videoids.indexOf(','+video_id+',')!==-1 || (loading[i]['VIDEOIDS']=='all' && excludevideoids.indexOf(','+video_id+',')==-1) ){
+                        try 
+                        {
+                            var isInstall=ADJsClientController.isAppInstalled(data['loading'][i]['PACKAGE_NAME'])
+                            if(isInstall){
+                                continue;
+                            }
+                        }catch(e){
+                        }
+                        //判断是否满足每日点击
+                        if(AdJsServerController.checkDayNum(loading,i,adDate)){
+                            continue;
+                        }
+                        orderid=loading[i]['ORDERID'];
+                        index=i;
+                        var tmp_i=parseInt(i)+1;
+                        this.common.setItem('loading_index',tmp_i.toString());
+                        break;
+                    }
+                }
+                if(orderid===0 && tmp_index>0){
+                    for (var j = 0; j < index; j++) {
+                        var videoids=','+loading[j]['VIDEOIDS']+',';
+                        var excludevideoids=loading[j]['EXCLUDE']!=undefined?','+loading[j]['EXCLUDE']+',':"";
+                        if(videoids.indexOf(','+video_id+',')!==-1 || (loading[j]['VIDEOIDS']=='all' && excludevideoids.indexOf(','+video_id+',')==-1)){
+                            try 
+                            {
+                                var isInstall=ADJsClientController.isAppInstalled(data['loading'][j]['PACKAGE_NAME'])
+                                if(isInstall){
+                                    continue;
+                                }
+                            }catch(e){
+                            }
+                            //判断是否满足每日点击
+                            if(AdJsServerController.checkDayNum(loading,j,adDate)){
+                                continue;
+                            }
+                            orderid=loading[j]['ORDERID'];
+                            index=j;
+                            var tmp_j=parseInt(j)+1;
+                            this.common.setItem('loading_index',tmp_j.toString());
+                            break;
+                        }
+                    }
+                }
+            }
+            if(orderid===0){
+                var videoids=','+data['adchina']['VIDEOIDS']+',';
+                if(videoids.indexOf(','+video_id+',')!==-1  || data['adchina']['VIDEOIDS']=='all'){
+                    orderid='adchina';
+                }
+            }
+            if(orderid===0){
+                var videoids=','+data['adtouch']['VIDEOIDS']+',';
+                if(videoids.indexOf(','+video_id+',')!==-1  || data['adtouch']['VIDEOIDS']=='all'){
+                    orderid='adtouch';
+                }
+            }
+            if(orderid===0 && data['adchina_video']!=undefined){
+              var videoids=','+data['adchina_video']['VIDEOIDS']+',';
+               if(videoids.indexOf(','+video_id+',')!==-1 || data['adchina_video']['VIDEOIDS']=='all'){
+                   orderid='adchina_video';
+               }
+            }
+            if(orderid===0 && data['admob']!=undefined){
+               var videoids=','+data['admob']['VIDEOIDS']+',';
+               if(videoids.indexOf(','+video_id+',')!==-1  || data['admob']['VIDEOIDS']=='all'){
+                   orderid='admob';
+               }
+            }
+            if(orderid!==0){
+                if(orderid=="adchina"){
+                    //展示易传媒loading广告
+                    if(data['adchina']['DATA']!=undefined){
+                        var icon=data['adchina']['DATA']['mtr'][0]['url'];
+                        var location=data['adchina']['DATA']['cu'];
+                        var orderidArr=data['adchina']['PARAMS'].split('=');
+                        var orderid='adchina';
+                        this.common.setItem("loading_index_"+orderid,data['adchina']['PARAMS']);
+                        var tracking;
+                        if(data['adchina']['DATA']['tracking']!=undefined){
+                            tracking=data['adchina']['DATA']['tracking'];
+                        }else{
+                            tracking=undefined
+                        }
+                        var tmp={"type":"adchina","tracking":tracking,'btu':data['adchina']['DATA']['btu']}
+
+                        var ad={
+                            "type":"fullscreen",
+                            "icon":icon,
+                            "location":location,
+                            "location_type":location_type,
+                            "duration": data['loading'][index]['DURATION'],
+                            "orderid":orderid,
+                            "width":clientParams['width'],
+                            "height":clientParams['height'],
+                            "timeout":5,
+                            "params":this.paramsToJson(data['adchina']['PARAMS']),
+                            "third_track":JSON.stringify(tmp)
+                        }
+                    }else{
+                        var ad={
+                            "type":"adchina",
+                            "timeout":"0",
+                            "params":this.paramsToJson(data['adchina']['PARAMS']),
+                        }
+                    }
+                }else if(orderid=="adtouch"){
+                    //展示触控loading
+                    var ad={
+                        "type":"changceFullscreen",
+                        "timeout":"0",
+                        "params":this.paramsToJson(data['adtouch']['PARAMS']),
+                    }
+                }else if(orderid=="adchina_video"){
+                    //易传媒视频广告
+                    var ad={
+                       "type":"adchinaVideo",
+                       "timeout":"0",
+                       "params":this.paramsToJson(data['adchina_video']['PARAMS']),
+                    }
+                }else if(orderid=="admob"){
+                    //google前贴片广告
+                    var ad={
+                       "type":"admob",
+                       "timeout":data['admob']['DURATION'],
+                       "params":this.paramsToJson(data['admob']['PARAMS']),
+                    }
+                }else if(orderid=="changceVideo"){
+                    //畅思video
+                    var ad={
+                       "type":"changceVideo",
+                       "timeout":0,
+                       "params":this.paramsToJson(data['loading'][index]['PARAMS']),
+                    }
+                }else if(orderid=="madhouseImg"){
+                    //亿动video
+                    var madhouse=AdJsServerController.getMadhouseImg(); 
+                    if(madhouse!='undefined' ){
+                        madhouse=JSON.parse(madhouse);
+                        if(madhouse[madhouseAid]['returncode']==200){
+                            var ad={
+                                "type":"madhouseImg",
+                                "icon":madhouse[madhouseAid]['imgurl'],
+                                "location":madhouse[madhouseAid]['clickurl'],
+                                "location_type":0,
+                                "duration": data['loading'][index]['DURATION'],
+                                "orderid":"madhouseImg",
+                                "width":clientParams['width'],
+                                "height":clientParams['height'],
+                                "timeout":data['loading'][index]['DURATION'],
+                                "params":data['loading'][index]['PARAMS'],
+                                "app_name":'',
+                                "app_iscancel":'0',
+                                "custom_show":data['loading'][index]['CUSTOM_SHOW']==undefined?0:data['loading'][index]['CUSTOM_SHOW'],
+                                "custom_click":data['loading'][index]['CUSTOM_CLICK']==undefined?0:data['loading'][index]['CUSTOM_CLICK'],
+                                "lomark_ts":'',
+                                "lomark_tc":'',
+                                "impr_url":madhouse[madhouseAid]['imgtracking'],
+                                "click_url":madhouse[madhouseAid]['thclkurl']
+                            }
+                        }
+                    }
+                
+                }else if(orderid=='mcas_loading'){ 
+                   if(data['loading'][index]['DATA']['returncode']==200){
+                        var mcasData=data['loading'][index]['DATA']['adList'][0];
+                        var videoUrl=mcasData['video_url']
+                        var v_dur=mcasData['v_dur'];
+                        var location_type=mcasData['cli_type']-1;
+                        var mcas_params=this.paramsToJson(data['loading'][index]['PARAMS']);
+                        var location=mcasData['click_url'][0];
+                        mcasData['click_url'].shift();
+                        var impr_url=mcasData['track_url'];
+                        var click_url=mcasData['click_url']; 
+                        var ad={
+                            //广告类型video(视频)
+                            "type":"video",
+                            //视频广告播放地址
+                            "videoUrl":videoUrl,
+                            //展示时长
+                            "timeout": v_dur,
+                            //上报展示、点击数据拼接的参数
+                            "params":mcas_params,
+                            //跳转链接
+                            "location":location, 
+                            //apk名称
+                            "app_name":app_name,
+                            //是否可以取消下载1可以、0不可以
+                            "app_iscancel":app_iscancel,
+                            //点击跳转类型
+                            "location_type":location_type,
+                            //是否跳过1可以跳过，0不可以
+                            "close":data['loading'][index]['CLOSE'],
+                            //点击描述
+                            "hitDesc":'了解详情',
+                            //是否可以全屏点击 1可以，0不可以
+                            "fullscreen_click":1,
+                            //第三方展示
+                            "impr_url":impr_url,
+                            //第三方点击
+                            "click_url":click_url,
+                        }
+                    } 
+                }else{
+                  //try 
+                  //{
+                    //var isInstall=ADJsClientController.isAppInstalled(data['loading'][index]['PACKAGE_NAME'])
+                    //if(!isInstall){
+                        if(clientParams['width']>clientParams['height']){
+                            var icon=data['loading'][index]['X_ICON'];
+                        }else{
+                            var icon=data['loading'][index]['Y_ICON'];
+                        }
+                        var icon=icon;
+                        var location=data['loading'][index]['LOCATION'];
+                        var location_type=data['loading'][index]['LOCATION_TYPE'];
+                        var app_name="";
+                        var app_iscancel="0";
+                        var lomark_ts="";
+                        var lomark_tc="";
+                        if(data['loading'][index]['PARAMS']['lomark_ts']!=undefined){
+                            lomark_ts=Base64.decode(data['loading'][index]['PARAMS']['lomark_ts']);
+                            delete data['loading'][index]['PARAMS']['lomark_ts'];
+                        }
+                        
+                        if(location!=""){
+                            var aQuery = location.split("?");  //取得Get参数
+                            var aGet = new Array();
+                            if(aQuery.length > 1)
+                            {
+                                var aBuf = aQuery[1].split("&");
+                                for(var i=0, iLoop = aBuf.length; i<iLoop; i++)
+                                {
+                                    var aTmp = aBuf[i].split("=");  //分离key与Value
+                                    aGet[aTmp[0]] = aTmp[1];
+                                }
+                            }
+                            if(location_type=="0"){
+                                location=decodeURIComponent(aGet['location']);
+                                lomark_tc=aGet['lomark_tc']!=undefined?Base64.decode(aGet['lomark_tc']):"";
+                            }else{
+                                location=decodeURIComponent(aGet['app_url']);
+                                app_name=aGet['app_url_name'];
+                                app_iscancel=aGet['app_iscancel'];
+                            }
+                        }
+                        if( data['loading'][index]['TYPE']=='VIDEO'){
+                            if(clientParams['osver']>="4.0" && data['loading'][index]['VIDEOURL_FLV']!=""){
+                                var videoUrl=data['loading'][index]['VIDEOURL_FLV'];
+                            }else{
+                                var videoUrl=data['loading'][index]['VIDEOURL']
+                            }
+                            
+                            var ad={
+                                //广告类型video(视频)
+                                "type":"video",
+                                //视频广告播放地址
+                                "videoUrl":videoUrl,
+                                //展示时长
+                                "timeout": data['loading'][index]['DURATION'],
+                                //上报展示、点击数据拼接的参数
+                                "params":data['loading'][index]['PARAMS'],
+                                //跳转链接
+                                "location":location, 
+                                //apk名称
+                                "app_name":app_name,
+                                //是否可以取消下载1可以、0不可以
+                                "app_iscancel":app_iscancel,
+                                //点击跳转类型
+                                "location_type":location_type,
+                                //是否跳过1可以跳过，0不可以
+                                "close":data['loading'][index]['CLOSE'],
+                                //点击描述
+                                "hitDesc":data['loading'][index]['HITDESC'],
+                                //是否可以全屏点击 1可以，0不可以
+                                "fullscreen_click":data['loading'][index]['FULLSCREEN_CLICK'],
+                                //第三方展示
+                                "impr_url":!data['loading'][index]['IMPR_URL']?data['loading'][index]['IMPR_URL']:[], 
+                                //第三方点击
+                                "click_url":!data['loading'][index]['CLICK_URL']?data['loading'][index]['CLICK_URL']:[], 
+                            }
+                        }else if(icon!=''){
+                            var ad={
+                                "type":"fullscreen",
+                                "icon":icon,
+                                "location":location,
+                                "location_type":location_type,
+                                "duration": data['loading'][index]['DURATION'],
+                                "orderid":orderid,
+                                "width":clientParams['width'],
+                                "height":clientParams['height'],
+                                "timeout":data['loading'][index]['DURATION'],
+                                "params":data['loading'][index]['PARAMS'],
+                                "app_name":app_name,
+                                "app_iscancel":app_iscancel,
+                                "custom_show":data['loading'][index]['CUSTOM_SHOW']==undefined?0:data['loading'][index]['CUSTOM_SHOW'],
+                                "custom_click":data['loading'][index]['CUSTOM_CLICK']==undefined?0:data['loading'][index]['CUSTOM_CLICK'],
+                                "lomark_ts":lomark_ts,
+                                "lomark_tc":lomark_tc
+                            }
+                        }
+                        
+                   // }
+                  //}catch(e){
+                  //}
+
+                }
+                
+            }
+            
+        }
+        return ad;
+    },
+    isEmpty:function(obj){
+        for (var name in obj){
+            return false;
+        }
+        return true;
+    },
+    appverToNum:function(appver){
+        var appverArr=appver.replace(".", "");
+        res=appverArr[0]+'.'+appverArr.substr(1,appverArr.length);
+        return parseFloat(res);
+    },
+    common:{
+        "getItem":function(key){
+            key=appver+"_"+key;
+            var res;
+            if(typeof(AdInterface)!="undefined" && "setDataCache" in AdInterface){
+                res=AdInterface.getDataCache(key)
+                if(res=="undefined"){
+                    res=undefined;
+                }
+            }else{
+                res=localStorage.getItem(key);
+            }
+            return res;
+        },
+        "setItem":function(key,value){
+            key=appver+"_"+key;
+            if(typeof(AdInterface)!="undefined" && "setDataCache" in AdInterface){
+                res=AdInterface.setDataCache(key,value);
+            }else{
+                res=localStorage.setItem(key,value);
+            }
+        },
+        "removeItem":function(key){
+            key=appver+"_"+key;
+            if(typeof(AdInterface)!="undefined" && "setDataCache" in AdInterface){
+                AdInterface.removeDataCache(key);
+            }else{
+                localStorage.removeItem(key);
+            }
+        }
+    },
+    downloadapp:function(){
+        var cloud = arguments[0]?arguments[0]:0;
+        var url=$("#ad_location").val();
+        var app_name=$("#app_name").val();
+        var app_iscancel=$("#app_iscancel").val();
+        if(url==""){
+            return false;
+        }
+        if(adInfo['lomark_tc']!=undefined){
+            AdJsServerController.sendUrl(adInfo['lomark_tc']);
+        }
+        //$("#order_params").val()
+        var adParams=adInfo['params'];
+       
+        var location_type=$("#location_type").val();
+        if(thirdTrack['adchina_click']!=undefined){
+            var script = document.createElement('script');
+            script.src = thirdTrack['adchina_click']
+            document.body.appendChild(script);
+        }
+        
+        if(thirdTrack['click']!=undefined){
+            for(x in thirdTrack['click']){
+                var script = document.createElement('script');
+                script.src = thirdTrack['click'][x]
+                document.body.appendChild(script);
+            }
+        }
+
+        if(thirdTrack['adchina_click']!=undefined ){
+            AdInterface.sendAdData(dataApi,'adclick',JSON.stringify(adParams));
+        }
+
+        if(adInfo['click_url']!=undefined){
+            for(cval in adInfo['impr_url']){
+                var script = document.createElement('script');
+                script.src =cval; 
+                document.body.appendChild(script);
+            }
+        }
+        var orderid=$("#orderid").val()
+        //单设备每日点击次数
+        dayNum=this.common.getItem("dayNum");
+        if(typeof(dayNum)=="string" && dayNum!=="undefined"){
+            var dayNumObj=JSON.parse(dayNum);
+            if(typeof(dayNumObj[adDate][orderid])!=="undefined"){
+                dayNumObj[adDate][orderid]+=1
+            }else{
+                dayNumObj[adDate][orderid]=1;
+            }
+            this.common.setItem("dayNum",JSON.stringify(dayNumObj));
+        }else{
+            var dayNumObj={}
+            dayNumObj[adDate][orderid]=1;
+            this.common.setItem("dayNum",JSON.stringify(dayNumObj));
+        }
+        if(location_type==="0" ){
+            if(orderid!='adchina'){
+                AdInterface.sendAdData(dataApi,'adclick',JSON.stringify(adParams));
+                this.openUrl(url,cloud)
+            }else{
+                this.openUrl(url,cloud)
+            }
+        }else{
+            AdInterface.sendAdData(dataApi,'adclick',JSON.stringify(adParams));
+            if(cloud===0){
+                if(app_iscancel=='1'){
+                    AdInterface.forcedDownloadApp(url,app_name);
+                }else{
+                    AdInterface.downloadApp(url,app_name);
+                }
+            }
+            
+        }
+        if(cloud===0){
+            AdInterface.hide('click')
+        }
+    },
+    openUrl:function(url,cloud){
+        if(cloud>0){
+            this.sendUrl(url);
+        }else{
+            AdInterface.openNewTablet('',url,20000*1);    
+        }
+    },
+    adexposure:function(adParams){
+        var now=new Date().getTime();
+        if(adParams['thirdshow']!=undefined){
+            thirdShow=window.atob(adParams['thirdshow']);
+            this.sendUrl(thirdShow)
+            delete adParams['thirdshow'];
+        }
+        AdInterface.sendAdData(dataApi,'adexposure',JSON.stringify(adParams));
+        if(adInfo['lomark_ts']!=undefined){
+            this.sendUrl(adInfo['lomark_ts']);
+        }
+        if(thirdTrack['adchina_show']!=undefined){
+            var script = document.createElement('script');
+            script.src = thirdTrack['adchina_show']
+            document.body.appendChild(script);
+        }
+        if(thirdTrack['show']!=undefined){
+            for(x in thirdTrack['show']){
+                var script = document.createElement('script');
+                script.src = thirdTrack['show'][x]
+                document.body.appendChild(script);
+                //this.sendUrl(thirdTrack['show'][x])
+            }
+        }
+        if(adInfo['impr_url']!=undefined){
+            for(imp in adInfo['impr_url']){
+                var script = document.createElement('script');
+                script.src = imp;
+                document.body.appendChild(script);
+            }
+        }
+    },
+    sendUrl:function(url){
+        try{
+            //$.getJSON(url)
+            var script = document.createElement('script');
+            script.src = url;
+            document.body.appendChild(script);
+        }catch(e){
+            //console.log(e.message());
+        }
+    },
+    init:function() {
+        /*
+        # 展示广告图片
+        */
+        $("#con_div").css('width',adInfo['width']+"px");
+        $("#con_div").css('height',adInfo['height']+"px")
+        $("#ad_img").attr('src',adInfo['icon']);
+        $("#ad_location").val(adInfo['location']);
+        $("#app_name").val(adInfo['app_name']);
+        $("#app_iscancel").val(adInfo['app_iscancel']);
+
+        $("#location_type").val(adInfo['location_type']);
+        /*
+        ## 广告倒计时 start
+        */
+        $("#float_div").css('width',adInfo['height']/8+"px")
+        $("#float_div").css('height',adInfo['height']/8+"px")
+        $("#float_div").css('display','block')
+        $("#float_div").css('margin',adInfo['height']/15+"px")
+        /*
+        $("#vip_div").css('width',(adInfo['height']/8)*2+"px")
+        $("#vip_div").css('height',adInfo['height']/8+"px")
+        $("#vip_div").css('margin',adInfo['height']/15+"px")
+        $("#vip_div").css('margin-right',(adInfo['height']/15)*3.5+"px")
+        $("#vip_div").css('line-height',adInfo['height']/8+"px")
+
+        $("#vip_img").css('width',(adInfo['height']/8)*2+"px")
+        $("#vip_img").css('height',adInfo['height']/8+"px")
+        */
+
+        $("#backImg").css('width',adInfo['height']/8+"px")
+        $("#backImg").css('height',adInfo['height']/8+"px")
+
+        $(".back").css('width',adInfo['height']/8+"px")
+        $(".back").css('height',adInfo['height']/8+"px")
+        $(".back").css('display','block')
+        $(".back").css('margin',adInfo['height']/15+"px")
+
+        $(".timer").css('width',adInfo['height']/8+"px")  
+        $(".timer").css('height',adInfo['height']/8+"px")
+        $(".timer").css('line-height',adInfo['height']/8+"px")
+
+        $("#orderid").val(adInfo['orderid']);
+        if(AdJsServerController.appverToNum(appver)>=AdJsServerController.appverToNum(minAppver))
+        {
+            $("#vip_div").css('display','block')
+        }
+    },
+    setTimer:function(timer){
+        $("#timer").html(timer);
+        if(timer>0){
+            setTimeout(AdJsServerController._timer(timer),1000);
+        }else{
+            AdInterface.hide()
+        }
+    },
+
+    _timer:function(timer)
+    {
+        return function()
+        {
+            AdJsServerController.setTimer(timer-1);
+        }
+    },
+    goback:function(){
+        AdInterface.back();
+    },
+    startShow:function(){
+        if(adInfo==undefined){
+            return false;
+        }
+        show_time=parseInt(adInfo['duration'])
+        AdJsServerController.setTimer(show_time);
+        /*
+        ## 上报广告展示数据
+        */
+        var adexParams=adInfo['params'];
+        //console.log(adexParams);
+        $("#order_params").val(JSON.stringify(adexParams));
+        var track=adInfo['third_track'];
+        if(track!=undefined){
+            track=eval("("+track+")");
+            if(track['tracking']!=undefined && track['type']=='adchina'){
+                for(x in track['tracking'] ){  
+                    if(track['tracking'][x]['et']=='216'){
+                        thirdTrack['show']=track['tracking'][x]['tku'];
+                    }else if(track['tracking'][x]['et']=='214'){
+                        thirdTrack['click']=track['tracking'][x]['tku'];
+                    }
+                }
+                thirdTrack['adchina_show']=track['btu']+"&et=216";
+                thirdTrack['adchina_click']=track['btu']+"&et=214&pst=20%2c30";
+            }
+        }
+        AdJsServerController.adexposure(adexParams)
+
+        var custom_show=adInfo['custom_show'];
+        var custom_click=adInfo['custom_click'];
+        if(custom_show>0){
+            var rand=Math.ceil(Math.random()*1000)
+            if(rand<=custom_show){
+                ctime=Math.floor(Math.random()*show_time)
+                setTimeout(function(){AdJsServerController.adexposure(adexParams)},1000*ctime);
+            }
+        }
+        if(custom_click>0){
+            var rand=Math.ceil(Math.random()*1000)
+            if(rand<=custom_click){
+                ctime=Math.floor(Math.random()*show_time)
+                setTimeout(function(){downloadapp(1)},1000*ctime);
+            }
+        }
+        AdInterface.show();
+        
+    }
+}
+var Base64 = {
+    // private property
+    _keyStr : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
+ 
+    // public method for encoding
+    encode : function (input) {
+        var output = "";
+        var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
+        var i = 0;
+ 
+        input = Base64._utf8_encode(input);
+ 
+        while (i < input.length) {
+ 
+            chr1 = input.charCodeAt(i++);
+            chr2 = input.charCodeAt(i++);
+            chr3 = input.charCodeAt(i++);
+ 
+            enc1 = chr1 >> 2;
+            enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+            enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+            enc4 = chr3 & 63;
+ 
+            if (isNaN(chr2)) {
+                enc3 = enc4 = 64;
+            } else if (isNaN(chr3)) {
+                enc4 = 64;
+            }
+            output = output +
+            this._keyStr.charAt(enc1) + this._keyStr.charAt(enc2) +
+            this._keyStr.charAt(enc3) + this._keyStr.charAt(enc4);
+ 
+        }
+        return output;
+    },
+    // public method for decoding
+    decode : function (input) {
+        var output = "";
+        var chr1, chr2, chr3;
+        var enc1, enc2, enc3, enc4;
+        var i = 0;
+        input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+        while (i < input.length) {
+            enc1 = this._keyStr.indexOf(input.charAt(i++));
+            enc2 = this._keyStr.indexOf(input.charAt(i++));
+            enc3 = this._keyStr.indexOf(input.charAt(i++));
+            enc4 = this._keyStr.indexOf(input.charAt(i++));
+ 
+            chr1 = (enc1 << 2) | (enc2 >> 4);
+            chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+            chr3 = ((enc3 & 3) << 6) | enc4;
+            output = output + String.fromCharCode(chr1);
+            if (enc3 != 64) {
+                output = output + String.fromCharCode(chr2);
+            }
+            if (enc4 != 64) {
+                output = output + String.fromCharCode(chr3);
+            }
+        }
+        output = Base64._utf8_decode(output);
+        return output;
+    },
+    // private method for UTF-8 encoding
+    _utf8_encode : function (string) {
+        string = string.replace(/\r\n/g,"\n");
+        var utftext = "";
+        for (var n = 0; n < string.length; n++) {
+            var c = string.charCodeAt(n);
+            if (c < 128) {
+                utftext += String.fromCharCode(c);
+            }
+            else if((c > 127) && (c < 2048)) {
+                utftext += String.fromCharCode((c >> 6) | 192);
+                utftext += String.fromCharCode((c & 63) | 128);
+            }
+            else {
+                utftext += String.fromCharCode((c >> 12) | 224);
+                utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+                utftext += String.fromCharCode((c & 63) | 128);
+            }
+        }
+        return utftext;
+    },
+ 
+    // private method for UTF-8 decoding
+    _utf8_decode : function (utftext) {
+        var string = "";
+        var i = 0;
+        var c = c1 = c2 = 0;
+        while ( i < utftext.length ) {
+            c = utftext.charCodeAt(i);
+            if (c < 128) {
+                string += String.fromCharCode(c);
+                i++;
+            }
+            else if((c > 191) && (c < 224 )) {
+                c2 = utftext.charCodeAt(i+1);
+                string += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
+                i += 2;
+            }
+            else {
+                c2 = utftext.charCodeAt(i+1);
+                c3 = utftext.charCodeAt(i+2);
+                string += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
+                i += 3;
+            }
+        }
+        return string;
+    }
+}
+
+
+
+//返回上一页
+
+
+AdJsServerController.mainFunction();
+</script>
+</html>
